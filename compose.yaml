@@ -1,6 +1,11 @@
 services:
   api:
-    build: .
+    build:
+      context: .
+      args:
+        HTTP_PROXY: http://10.7.0.25:7890
+        HTTPS_PROXY: http://10.7.0.25:7890
+        NO_PROXY: localhost,127.0.0.1
     image: dblp-local-search:local
     command: [serve]
     restart: unless-stopped
@@ -26,7 +31,6 @@ services:
       start_period: 30s
 
   updater:
-    build: .
     image: dblp-local-search:local
     command: [schedule]
     restart: unless-stopped
@@ -37,6 +41,9 @@ services:
       TZ: ${TZ:-Asia/Shanghai}
       DBLP_UPDATE_CRON: ${DBLP_UPDATE_CRON:-0 3 * * 0}
       DBLP_MIN_RECORD_RATIO: ${DBLP_MIN_RECORD_RATIO:-0.8}
+      HTTP_PROXY: http://10.7.0.25:7890
+      HTTPS_PROXY: http://10.7.0.25:7890
+      NO_PROXY: localhost,127.0.0.1
     volumes:
       - dblp_data:/data
     read_only: true
