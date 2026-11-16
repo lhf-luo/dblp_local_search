@@ -16,7 +16,7 @@ def main() -> None:
     commands = parser.add_subparsers(dest="command", required=True)
     serve = commands.add_parser("serve")
     serve.add_argument("--host", default="0.0.0.0")#？
-    serve.add_argument("--port", type=int, default=8000)#？
+    serve.add_argument("--port", type=int, default=40713)#？
     importer = commands.add_parser("update")
     importer.add_argument("--force", action="store_true")
     importer.add_argument(

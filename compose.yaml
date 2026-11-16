@@ -6,7 +6,7 @@ services:
     restart: unless-stopped
     init: true
     ports:
-      - "${DBLP_BIND_ADDRESS:-127.0.0.1}:${DBLP_PORT:-8000}:8000"
+      - "${DBLP_BIND_ADDRESS:-127.0.0.1}:${DBLP_PORT:-40713}:40713"
     environment:
       DBLP_DATA_DIR: /data
       DBLP_QUERY_TIMEOUT: ${DBLP_QUERY_TIMEOUT:-15}
