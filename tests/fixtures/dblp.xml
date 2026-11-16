@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dblp SYSTEM "dblp.dtd">
+<dblp>
+  <inproceedings key="conf/icse/One24"><author pid="s/Alice">Alice Smith</author><author>Ren&eacute; Jones</author><title>Graph <i>Learning</i> for Security</title><year>2024</year><booktitle>ICSE</booktitle><ee>https://doi.org/10.1234/ONE</ee><ee>https://example.org/one.pdf</ee></inproceedings>
+  <article key="journals/Two23"><author pid="s/Alice">Alice Smith</author><title>Graph Learning Survey</title><year>2023</year><journal>Example Journal</journal><ee>https://doi.org/10.1234/TWO</ee></article>
+  <inproceedings key="conf/icse/Three25"><author pid="b/Bob">Bob Stone</author><title>Graph Neural Learning</title><year>2025</year><booktitle>ICSE</booktitle></inproceedings>
+  <www key="homepages/a/Alice"><author>Alice Smith</author><title>Home Page</title></www>
+</dblp>

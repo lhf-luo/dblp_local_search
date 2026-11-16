@@ -1,0 +1,51 @@
+services:
+  api:
+    build: .
+    image: dblp-local-search:local
+    command: [serve]
+    restart: unless-stopped
+    init: true
+    ports:
+      - "${DBLP_BIND_ADDRESS:-127.0.0.1}:${DBLP_PORT:-8000}:8000"
+    environment:
+      DBLP_DATA_DIR: /data
+      DBLP_API_TOKEN: ${DBLP_API_TOKEN:?Set DBLP_API_TOKEN in .env}
+      DBLP_QUERY_TIMEOUT: ${DBLP_QUERY_TIMEOUT:-15}
+    volumes:
+      - dblp_data:/data:ro
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    healthcheck:
+      test: [CMD, dblp-local, healthcheck]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 30s
+
+  updater:
+    build: .
+    image: dblp-local-search:local
+    command: [schedule]
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 2m
+    environment:
+      DBLP_DATA_DIR: /data
+      TZ: ${TZ:-Asia/Shanghai}
+      DBLP_UPDATE_CRON: ${DBLP_UPDATE_CRON:-0 3 * * 0}
+      DBLP_MIN_RECORD_RATIO: ${DBLP_MIN_RECORD_RATIO:-0.8}
+    volumes:
+      - dblp_data:/data
+    read_only: true
+    tmpfs:
+      - /tmp:size=256m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+
+volumes:
+  dblp_data:
