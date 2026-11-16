@@ -1,17 +1,18 @@
-"""Fresh snapshot schema, built offline then opened read-only."""
-'''
-papers:DBLP-key,title,year,venue,doi,record_url,urls(序列化的多个外链),authors_json,content_hash(这条记录的hash)
+"""Fresh snapshot schema, built offline then opened read-only.
 
-authors:identity(规范化后的名字,没完全看)，name,pid
+papers: DBLP-key, title, year, venue, doi, record_url, urls,
+        authors_json, content_hash
 
-paper_authors : 主键(paper_id,position)。
-metadata:元数据
+authors: identity, name, pid
+paper_authors: primary key(paper_id, position)
+metadata: 元数据
 
-FST5全文索引
-paper_fts：title, authors_text, venue，tokenize='unicode61 remove_diacritics 2'
-author_fts：name, tokenize='unicode61 remove_diacritics 2'
+FTS5 全文索引
+paper_fts: title, authors_text, venue
+          tokenize='unicode61 remove_diacritics 2'
+author_fts: name, tokenize='unicode61 remove_diacritics 2'
+"""
 
-'''
 import sqlite3
 
 SCHEMA = """
@@ -47,6 +48,6 @@ CREATE INDEX paper_authors_author ON paper_authors(author_id, paper_id);
 CREATE INDEX authors_pid ON authors(pid);
 """
 
-
+#创建数据库
 def create_schema(connection: sqlite3.Connection) -> None:
     connection.executescript(SCHEMA)

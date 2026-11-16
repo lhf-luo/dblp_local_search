@@ -1,7 +1,7 @@
 """Runtime configuration; no implicit dotenv loading."""
 
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Self
 
@@ -9,7 +9,6 @@ from typing import Self
 @dataclass(frozen=True)
 class Settings:
     data_dir: Path = Path("data")
-    api_token: str = field(default="", repr=False)
     query_timeout: float = 15.0
     timezone: str = "Asia/Shanghai"
     update_cron: str = "0 3 * * 0"
@@ -19,7 +18,6 @@ class Settings:
     def from_env(cls) -> Self:
         settings = cls(
             data_dir=Path(os.getenv("DBLP_DATA_DIR", "data")),
-            api_token=os.getenv("DBLP_API_TOKEN", "").strip(),
             query_timeout=float(os.getenv("DBLP_QUERY_TIMEOUT", "15")),
             timezone=os.getenv("TZ", "Asia/Shanghai"),
             update_cron=os.getenv("DBLP_UPDATE_CRON", "0 3 * * 0"),

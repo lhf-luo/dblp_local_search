@@ -70,7 +70,8 @@ def active_metadata(root: Path) -> dict[str, Any]:
     with database(root, 15) as connection:
         return read_metadata(connection)
 
-#替换文件 over review
+
+# 替换文件 over review
 def publish(candidate: Path, root: Path) -> None:
     """Same-filesystem atomic replacement; Linux open readers retain the old inode.
 

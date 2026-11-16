@@ -12,7 +12,7 @@ FIXTURES = Path(__file__).parent / "fixtures"
 
 @pytest.fixture
 def settings(tmp_path):
-    return Settings(data_dir=tmp_path / "data", api_token="test-token")
+    return Settings(data_dir=tmp_path / "data")
 
 
 @pytest.fixture
@@ -23,6 +23,4 @@ def populated(settings):
 
 @pytest.fixture
 def client(populated):
-    return TestClient(
-        create_app(populated), headers={"Authorization": "Bearer test-token"}
-    )
+    return TestClient(create_app(populated))

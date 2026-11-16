@@ -6,14 +6,14 @@ import json
 from collections.abc import Mapping
 from typing import Any
 
-
+#做hash值，为了分页处理
 def fingerprint(value: Mapping[str, Any]) -> str:
     value = {key: item for key, item in value.items() if key != "cursor"}
     return hashlib.sha256(
         json.dumps(value, sort_keys=True, ensure_ascii=False).encode()
     ).hexdigest()
 
-
+#over review
 def encode(last: int, query: str) -> str:
     return (
         base64.urlsafe_b64encode(json.dumps({"last": last, "q": query}).encode())
@@ -21,7 +21,7 @@ def encode(last: int, query: str) -> str:
         .rstrip("=")
     )
 
-
+#over review
 def decode(token: str | None, query: str) -> int:
     if token is None:
         return 0

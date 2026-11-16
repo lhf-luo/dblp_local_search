@@ -23,7 +23,8 @@ RECORD_TAGS = {
     "data",
 }
 
-#解析xml的辅助函数
+
+# 解析xml的辅助函数
 class LocalDtdResolver(etree.Resolver):
     def __init__(self, dtd: Path, xml: Path) -> None:
         self.dtd: Path = dtd.resolve()
@@ -48,7 +49,8 @@ class LocalDtdResolver(etree.Resolver):
             return self.resolve_filename(str(self.dtd), context)
         raise ValueError("XML references an unapproved external resource")
 
-#一条记录
+
+# 一条记录
 @dataclass(frozen=True)
 class Record:
     key: str
@@ -59,11 +61,13 @@ class Record:
     urls: tuple[str, ...]
     authors: tuple[tuple[str, str | None], ...]
 
+
 # 辅助函数
 def node_text(node: etree._Element | None) -> str:
     return " ".join("".join(node.itertext()).split()) if node is not None else ""
 
-#解析一条记录
+
+# 解析一条记录
 def parse_record(node: etree._Element) -> Record:
     title, key = node_text(node.find("title")), node.get("key")
     if not title or not key:
@@ -89,17 +93,19 @@ def parse_record(node: etree._Element) -> Record:
         tuple((node_text(author), author.get("pid")) for author in authors),
     )
 
-#过滤条件
-def predicate(record:Record) -> bool:
+
+# 过滤条件
+def predicate(record: Record) -> bool:
     """
     读取环境变量，或者写死？
     """
-    if(records.year and records.year<2010):
+    if record.year is not None and record.year < 2000:
         return False
-    
+
     return True
 
-#流式读取xml文件 over review
+
+# 流式读取xml文件 over review
 def records(xml: Path, dtd: Path) -> Iterator[Record]:
     """Never materialize the document tree; drop each top-level node after use.
 
@@ -127,8 +133,7 @@ def records(xml: Path, dtd: Path) -> Iterator[Record]:
             if parent is None or parent.tag != "dblp":
                 continue
             if node.tag in RECORD_TAGS and node.tag != "www":
-                
-                record =parse_record(node)
+                record = parse_record(node)
                 if predicate(record):
                     yield record
             node.clear()

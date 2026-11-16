@@ -19,7 +19,7 @@ def test_not_ready(settings):
     client = TestClient(create_app(settings))
     assert client.get("/health/live").status_code == 200
     assert client.get("/health/ready").status_code == 503
-    assert client.post("/v1/papers/search", json={"year_from": 2020}).status_code == 401
+    assert client.post("/v1/papers/search", json={"year_from": 2020}).status_code == 503
 
 
 def test_failed_build_keeps_current(populated, tmp_path):

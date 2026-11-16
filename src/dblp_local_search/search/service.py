@@ -18,7 +18,7 @@ def paper_dict(row: sqlite3.Row) -> dict[str, Any]:
     value.pop("id", None)
     return value
 
-
+#每次多取一条，用于判断是否存在more over review
 def search(settings: Settings, request: Search) -> dict[str, Any]:
     signature = fingerprint(request.model_dump())
     last = decode(request.cursor, signature)
@@ -30,7 +30,7 @@ def search(settings: Settings, request: Search) -> dict[str, Any]:
             ).fetchone()[0]
             if request.include_total
             else None
-        )
+        )#查询语句
         rows = connection.execute(
             f"SELECT p.* FROM papers p WHERE ({condition}) AND p.id>? ORDER BY p.id LIMIT ?",
             [*params, last, request.page_size + 1],
@@ -44,7 +44,7 @@ def search(settings: Settings, request: Search) -> dict[str, Any]:
             "warnings": [],
         }
 
-
+#dblp_key 或者 doi查询 over review
 def lookup(
     settings: Settings, key: str | None = None, doi: str | None = None
 ) -> dict[str, Any]:
@@ -55,7 +55,7 @@ def lookup(
         ).fetchall()
         return {"items": [paper_dict(row) for row in rows]}
 
-
+#作者查询，逻辑相同，未完全检查
 def authors(
     settings: Settings, name: str, page_size: int, cursor: str | None
 ) -> dict[str, Any]:
@@ -87,7 +87,7 @@ def authors(
             "next_cursor": encode(rows[-1]["id"], signature) if more else None,
         }
 
-
+#读取数据库的元数据 over review
 def dataset(settings: Settings) -> dict[str, Any]:
     with database(settings.data_dir, settings.query_timeout) as connection:
         metadata = {

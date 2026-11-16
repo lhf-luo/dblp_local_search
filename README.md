@@ -11,7 +11,7 @@
 - 初步可预留 8 GiB 内存、100 GiB 以上空闲磁盘用于验证，但**不是全量资源保证**，必须结合当前 dump 大小实测。
 - 首次初始化会完整建库；后续更新复制当前数据库到临时文件，只修改新增、变化和删除的记录，校验后替换。
 - 更新时同时存在：唯一正式库 + 临时数据库副本 + 下载的 gzip；成功后只有 `/data/dblp.sqlite`，不保留历史库。不要按压缩包大小估算磁盘。
-- API 启动必须配置 Bearer Token；仅建议部署在可信内网，跨不可信网络需反向代理 HTTPS。
+- API 默认无认证；仅建议部署在可信内网，跨不可信网络需反向代理并补充访问控制。
 
 ## 2. 首次部署
 
@@ -26,8 +26,7 @@ chmod 600 .env
 编辑 `.env`：
 
 ```dotenv
-DBLP_API_TOKEN=请替换成长随机字符串
-DBLP_BIND_ADDRESS=192.168.1.100
+DBLP_BIND_ADDRESS=0.0.0.0
 DBLP_PORT=8000
 TZ=Asia/Shanghai
 DBLP_UPDATE_CRON=0 3 * * 0
@@ -37,7 +36,6 @@ DBLP_MIN_RECORD_RATIO=0.8
 
 - `DBLP_BIND_ADDRESS` 填服务器**实际内网 IP**；默认 `127.0.0.1` 仅允许本机访问。
 - 不建议设 `0.0.0.0` 后直接暴露公网；用防火墙限制访问来源。
-- Token 可本地生成，例如 `python3 -c 'import secrets; print(secrets.token_urlsafe(32))'`。
 - `.env` 不提交版本库，镜像构建也不复制它。
 
 ```bash
@@ -107,9 +105,7 @@ docker compose up -d --force-recreate updater
 curl http://192.168.1.100:8000/health/live
 curl http://192.168.1.100:8000/health/ready
 
-# 建议在当前 shell 设置 API_TOKEN，避免把 Token 直接写进命令历史。
-curl -H "Authorization: Bearer $API_TOKEN" \
-  http://192.168.1.100:8000/v1/dataset
+curl http://192.168.1.100:8000/v1/dataset
 ```
 
 - `live`：进程存活。
@@ -117,7 +113,7 @@ curl -H "Authorization: Bearer $API_TOKEN" \
 - `/v1/dataset`：论文/作者数量、构建时间、最近更新状态，不返回数据版本。
 - 更新失败会记录在 `/data/update-status.json`，旧数据仍服务。
 - 更新状态包含 `mode`（`full` 或 `incremental`）以及新增、更新、未变化、删除数量。
-- Docker 健康检查只读，不触发下载或建库。API 文档在 `/docs`，业务接口需 Bearer Token。
+- Docker 健康检查只读，不触发下载或建库。API 文档在 `/docs`。
 
 ## 5. 搜索接口
 
@@ -125,7 +121,6 @@ curl -H "Authorization: Bearer $API_TOKEN" \
 
 ```bash
 curl -X POST http://192.168.1.100:8000/v1/papers/search \
-  -H "Authorization: Bearer $API_TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{
     "query": {
@@ -158,7 +153,18 @@ curl -X POST http://192.168.1.100:8000/v1/papers/search \
 
 ```json
 {
-  "items": [{"dblp_key":"conf/icse/example","title":"...","authors":["..."],"year":2024,"venue":"ICSE","doi":null,"record_url":"...","external_urls":[]}],
+  "items": [
+    {
+      "dblp_key": "conf/icse/example",
+      "title": "...",
+      "authors": ["..."],
+      "year": 2024,
+      "venue": "ICSE",
+      "doi": null,
+      "record_url": "...",
+      "external_urls": []
+    }
+  ],
   "total": 123,
   "next_cursor": "...",
   "warnings": []
@@ -167,16 +173,16 @@ curl -X POST http://192.168.1.100:8000/v1/papers/search \
 
 下一页将 `next_cursor` 原样放进相同请求的 `cursor`；其他字段不变，包括 page_size/include_total。
 游标只绑定查询条件和最后记录位置，不绑定数据库版本；更新后不会因为数据切换拒绝旧游标。如果正好跨周更翻页，允许出现重复或遗漏，客户端可重新开始查询。
-游标不是认证令牌，也不是加密载荷；访问授权由 Bearer Token 独立处理。
+游标不是加密载荷，也不承担访问控制。
 
 ### DBLP Key / DOI 查询
 
 ```bash
 curl -G http://192.168.1.100:8000/v1/papers/lookup \
-  -H "Authorization: Bearer $API_TOKEN" --data-urlencode 'key=conf/icse/example'
+  --data-urlencode 'key=conf/icse/example'
 
 curl -G http://192.168.1.100:8000/v1/papers/lookup \
-  -H "Authorization: Bearer $API_TOKEN" --data-urlencode 'doi=10.1234/example'
+  --data-urlencode 'doi=10.1234/example'
 ```
 
 key/doi 二选一，DOI 使用不含 URL 前缀的标准值。未命中返回 items=[]，不报网络错误。每次最多返回 100 条（极少数同 DOI 多记录场景）。
@@ -185,7 +191,7 @@ key/doi 二选一，DOI 使用不含 URL 前缀的标准值。未命中返回 it
 
 ```bash
 curl -G http://192.168.1.100:8000/v1/authors/search \
-  -H "Authorization: Bearer $API_TOKEN" --data-urlencode 'name=Alice Smith'
+  --data-urlencode 'name=Alice Smith'
 ```
 
 返回作者候选、author_id 和可用 PID，不需要数据版本参数。
@@ -193,8 +199,7 @@ curl -G http://192.168.1.100:8000/v1/authors/search \
 **注意**：dump 的出版物作者通常没有 PID。此时按照姓名生成的是“未验证姓名标签”，不是已经消歧的真实人物；同名作品可能混合，`identity_verified=false`。不要声称本地服务实现了 DBLP 在线作者 PID 消歧。
 
 ```bash
-curl http://192.168.1.100:8000/v1/authors/123/papers \
-  -H "Authorization: Bearer $API_TOKEN"
+curl http://192.168.1.100:8000/v1/authors/123/papers
 ```
 
 作者数字 ID 属于当前数据库，不建议长期缓存；更新后应重新搜索作者。本版不检测跨更新使用旧 ID 的情况。
@@ -237,13 +242,13 @@ uv run ruff format --check src tests
 DBLP_DATA_DIR=./data uv run dblp-local update \
   --xml tests/fixtures/dblp.xml --dtd tests/fixtures/dblp.dtd
 
-DBLP_API_TOKEN=local-test-token DBLP_DATA_DIR=./data uv run dblp-local serve --host 127.0.0.1
+DBLP_DATA_DIR=./data uv run dblp-local serve --host 127.0.0.1
 ```
 
 Windows PowerShell 使用 `$env:DBLP_DATA_DIR=...` 设置环境变量。
 
 ## 8. 验证边界
 
-已通过固定样本的 XML/DTD、AND/OR/NOT/短语、年份/会议、作者、认证、分页、单库原子替换、锁及失败保留旧库测试。Linux 专属的打开旧连接测试在 Windows 上跳过。
+已通过固定样本的 XML/DTD、AND/OR/NOT/短语、年份/会议、作者、分页、单库原子替换、锁及失败保留旧库测试。Linux 专属的打开旧连接测试在 Windows 上跳过。
 Compose 可进行静态校验；本轮未下载完整 DBLP，也未测完整数据的资源开销。当前开发机 Docker 引擎未运行，未宣称 Docker 容器运行验证通过。
 服务端目前与现有 SDK 独立，不会自动切换或替代 SDK 中的在线 DBLP Provider。

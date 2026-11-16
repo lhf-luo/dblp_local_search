@@ -25,7 +25,8 @@ from dblp_local_search.storage.database import (
 def now() -> str:
     return datetime.now(UTC).isoformat()
 
-#过渡的中间函数 over review
+
+# 过渡的中间函数 over review
 def update(
     settings: Settings,
     *,
@@ -44,7 +45,8 @@ def update(
         print("Update already running; skipped", flush=True)
         return {"state": "busy"}
 
-#整体的更新入口 over review 
+
+# 整体的更新入口 over review
 def locked_update(
     settings: Settings,
     force: bool,
@@ -60,7 +62,7 @@ def locked_update(
         ):
             raise ValueError("Local XML/DTD must be outside the staging directory")
     if stage.exists():
-        shutil.rmtree(stage)#删除目录
+        shutil.rmtree(stage)  # 删除目录
     stage.mkdir(parents=True)
     status: dict[str, Any] = {"state": "running", "started_at": now()}
     atomic_json(root / "update-status.json", status)
@@ -71,13 +73,13 @@ def locked_update(
         else:
             source_xml, source_dtd, upstream = source
             candidate = stage / "dblp.sqlite"
-            if full or not (root / "dblp.sqlite").is_file():#全量更新
-                metadata = build(source_xml, source_dtd, candidate)#建立库
+            if full or not (root / "dblp.sqlite").is_file():  # 全量更新
+                metadata = build(source_xml, source_dtd, candidate)  # 建立库
                 write_upstream(candidate, upstream)
-                status.update(mode="full", **metadata)#更新状态
+                status.update(mode="full", **metadata)  # 更新状态
             else:
                 copy_database(root / "dblp.sqlite", candidate)
-                stats = apply_incremental_to(#增量更新
+                stats = apply_incremental_to(  # 增量更新
                     candidate, source_xml, source_dtd, upstream
                 )
                 if not (stats["added"] or stats["updated"] or stats["deleted"]):
@@ -105,7 +107,8 @@ def locked_update(
     finally:
         shutil.rmtree(stage, ignore_errors=True)
 
-#数据更新 over review 
+
+# 数据更新 over review
 def apply_incremental_to(
     candidate: Path, xml: Path, dtd: Path, upstream: dict[str, Any]
 ) -> dict[str, Any]:
@@ -117,13 +120,15 @@ def apply_incremental_to(
         connection.commit()
         return stats
 
-#over review
+
+# over review
 def write_upstream(candidate: Path, upstream: dict[str, Any]) -> None:
     with closing(sqlite3.connect(candidate)) as connection, connection:
         write_metadata(connection, {"upstream": upstream})
         connection.commit()
 
-#备份数据库 over review
+
+# 备份数据库 over review
 def copy_database(source: Path, target: Path) -> None:
     """Consistent SQLite backup; does not copy a live file byte-for-byte."""
     if target.exists():
@@ -138,7 +143,8 @@ def copy_database(source: Path, target: Path) -> None:
         source_connection.close()
         target_connection.close()
 
-#数据下载 over reivew
+
+# 数据下载 over reivew
 def prepare_source(
     root: Path,
     stage: Path,

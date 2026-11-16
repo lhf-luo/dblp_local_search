@@ -43,14 +43,3 @@ def test_body_limit(client):
         headers={"Content-Type": "application/json"},
     )
     assert response.status_code == 413
-
-
-def test_no_token_configuration_fails_closed(settings):
-    from dataclasses import replace
-
-    from fastapi.testclient import TestClient
-
-    from dblp_local_search.app import create_app
-
-    client = TestClient(create_app(replace(settings, api_token="")))
-    assert client.get("/v1/dataset").status_code == 503

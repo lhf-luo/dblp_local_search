@@ -7,7 +7,7 @@ from dblp_local_search.search.models import Search, Term
 
 COLUMNS = {"title": "title", "authors": "authors_text", "venue": "venue"}
 
-
+#转换单一的查询 over review
 def atom(term: Term) -> str:
     words = re.findall(r"[^\W_]+", unicodedata.normalize("NFKC", term.text), re.UNICODE)
     if not words:
@@ -22,9 +22,9 @@ def atom(term: Term) -> str:
         expression = f"{COLUMNS[term.field]} : {expression}"
     return expression
 
-
+#over review 转换Search为具体的sql条件
 def predicate(request: Search) -> tuple[str, list[object]]:
-    clauses: list[str] = []
+    clauses: list[str] = [] 
     params: list[object] = []
     positives = [atom(term) for term in request.query.all_of]
     if request.query.any_of:

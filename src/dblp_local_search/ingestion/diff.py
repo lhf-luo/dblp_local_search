@@ -14,7 +14,8 @@ from dblp_local_search.ingestion.build import (
 )
 from dblp_local_search.ingestion.parser import records
 
-#增量更新数据库表的内容。 over review
+
+# 增量更新数据库表的内容。 over review
 def apply_incremental(
     connection: sqlite3.Connection, xml: Path, dtd: Path
 ) -> dict[str, Any]:
@@ -36,7 +37,7 @@ def apply_incremental(
         if row is None:
             insert_record(connection, record, digest)
             counts["added"] += 1
-        elif row["content_hash"] != digest:#hash不同，dblp_key不同，说明需要执行更新
+        elif row["content_hash"] != digest:  # hash不同，dblp_key不同，说明需要执行更新
             update_record(connection, row["id"], record, digest)
             counts["updated"] += 1
         else:
@@ -49,7 +50,7 @@ def apply_incremental(
     if processed == 0:
         raise ValueError("Dump contains no publications")
     connection.commit()
-    #额外的处理，用于删除新版本中不存在的键
+    # 额外的处理，用于删除新版本中不存在的键
     connection.execute(
         "CREATE TEMP TABLE removed_ids AS "
         "SELECT id FROM papers WHERE dblp_key NOT IN (SELECT dblp_key FROM seen_keys)"

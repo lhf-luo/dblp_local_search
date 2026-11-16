@@ -40,7 +40,7 @@ def cron_trigger(expression: str, timezone: str) -> CronTrigger:
         timezone=timezone,
     )
 
-
+#设置定时的任务，常驻内存
 def run(settings: Settings) -> None:
     scheduler = BlockingScheduler(timezone=settings.timezone)
 

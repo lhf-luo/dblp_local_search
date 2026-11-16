@@ -15,8 +15,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     serve = commands.add_parser("serve")
-    serve.add_argument("--host", default="0.0.0.0")
-    serve.add_argument("--port", type=int, default=8000)
+    serve.add_argument("--host", default="0.0.0.0")#？
+    serve.add_argument("--port", type=int, default=8000)#？
     importer = commands.add_parser("update")
     importer.add_argument("--force", action="store_true")
     importer.add_argument(
@@ -29,15 +29,13 @@ def main() -> None:
     args = parser.parse_args()
     settings = Settings.from_env()
     if args.command == "serve":
-        if not settings.api_token:
-            parser.error("DBLP_API_TOKEN must be configured")
         uvicorn.run(
-            "dblp_local_search.app:create_app",
+            "dblp_local_search.app:create_app", #fastAPI常驻内存
             factory=True,
             host=args.host,
             port=args.port,
         )
-    elif args.command == "update":
+    elif args.command == "update":#over 只是数据库的更新
         try:
             print(
                 update(
@@ -51,7 +49,7 @@ def main() -> None:
         except Exception as error:
             logging.error("Update failed: %s", error)
             raise SystemExit(1) from None
-    elif args.command == "schedule":
+    elif args.command == "schedule":#设置定时任务
         from dblp_local_search.scheduler import run
 
         run(settings)

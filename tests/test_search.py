@@ -57,7 +57,7 @@ def test_lookup_and_author_identity(client):
     assert not unverified["items"][0]["identity_verified"]
 
 
-def test_bad_input_and_auth(client):
+def test_bad_input(client):
     assert client.post("/v1/papers/search", json={}).status_code == 422
     assert (
         client.post(
@@ -70,10 +70,6 @@ def test_bad_input_and_auth(client):
             "/v1/papers/search", json={"year_from": 2025, "year_to": 2020}
         ).status_code
         == 422
-    )
-    assert (
-        client.get("/v1/dataset", headers={"Authorization": "Bearer wrong"}).status_code
-        == 401
     )
     assert client.get("/health/ready").status_code == 200
     assert client.get("/v1/papers/lookup").status_code == 422

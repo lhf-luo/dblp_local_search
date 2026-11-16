@@ -9,7 +9,6 @@ services:
       - "${DBLP_BIND_ADDRESS:-127.0.0.1}:${DBLP_PORT:-8000}:8000"
     environment:
       DBLP_DATA_DIR: /data
-      DBLP_API_TOKEN: ${DBLP_API_TOKEN:?Set DBLP_API_TOKEN in .env}
       DBLP_QUERY_TIMEOUT: ${DBLP_QUERY_TIMEOUT:-15}
     volumes:
       - dblp_data:/data:ro

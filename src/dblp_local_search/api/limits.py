@@ -3,7 +3,7 @@
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-
+#中间件的过滤处理，
 class BodyLimitMiddleware:
     def __init__(self, app: ASGIApp, limit: int = 65536) -> None:
         self.app: ASGIApp = app
