@@ -19,8 +19,6 @@ RECORD_TAGS = {
     "incollection",
     "phdthesis",
     "mastersthesis",
-    "www",
-    "data",
 }
 
 
@@ -132,7 +130,7 @@ def records(xml: Path, dtd: Path) -> Iterator[Record]:
             parent = node.getparent()
             if parent is None or parent.tag != "dblp":
                 continue
-            if node.tag in RECORD_TAGS and node.tag != "www":
+            if node.tag in RECORD_TAGS:
                 record = parse_record(node)
                 if predicate(record):
                     yield record
